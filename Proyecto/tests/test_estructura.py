@@ -2,6 +2,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
+REPOSITORY_ROOT = ROOT.parent
 
 
 def test_existe_readme():
@@ -9,15 +10,15 @@ def test_existe_readme():
 
 
 def test_existe_directorio_github():
-    assert (ROOT / ".github").is_dir()
+    assert (REPOSITORY_ROOT / ".github").is_dir()
 
 
 def test_existe_directorio_workflows():
-    assert (ROOT / ".github" / "workflows").is_dir()
+    assert (REPOSITORY_ROOT / ".github" / "workflows").is_dir()
 
 
 def test_existe_ci_yml():
-    assert (ROOT / ".github" / "workflows" / "ci.yml").exists()
+    assert (REPOSITORY_ROOT / ".github" / "workflows" / "ci.yml").exists()
 
 
 def test_existe_directorio_labs():
