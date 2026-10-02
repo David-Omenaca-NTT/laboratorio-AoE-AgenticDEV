@@ -13,7 +13,7 @@ def test_health_returns_200():
     assert response.json() == {"status": "ok"}
 
 
-def test_hello_valid_returns_200():
+def test_hello_valid_returns_200_without_authentication():
     response = client.post("/hello", json={"name": "David"})
 
     assert response.status_code == 200
@@ -27,6 +27,12 @@ def test_hello_returns_expected_message():
 
 def test_hello_rejects_empty_name():
     response = client.post("/hello", json={"name": ""})
+
+    assert response.status_code == 422
+
+
+def test_hello_rejects_whitespace_only_name():
+    response = client.post("/hello", json={"name": "   "})
 
     assert response.status_code == 422
 
