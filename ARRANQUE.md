@@ -2,13 +2,18 @@
 Prueba de pipeline CI
 ## s-1 arranque
 
-Creé la app mínima en main.py, los tests en test_api.py y las dependencias en requirements.txt. Los nombres se guardan en una lista en memoria. No añadí Docker, CI ni despliegue.
+La aplicación está en `src/app/main.py`, los tests en `tests/` y las dependencias en `requirements.txt`, todo desde la raíz del repositorio. Los nombres recibidos se guardan en memoria.
 
-Verificación: pasaron los 12 tests de Proyecto/tests/, incluidos los existentes. El entorno disponible para ejecutarlos usa Python 3.14; los comandos de abajo crean el entorno solicitado con Python 3.11.
+Esta aplicación no requiere credenciales ni variables de entorno. `POST /hello`
+es público: en Postman usa **Authorization → No Auth** y envía el nombre como
+JSON, por ejemplo `{"name": "Ana"}`. Un nombre vacío o compuesto solo por
+espacios, o un campo `name` omitido, devuelve `422`. Si recibes `401`, revisa
+que la petición apunte a esta app (`http://127.0.0.1:8000/hello`) y que no haya
+una autenticación heredada en Postman o un proxy/middleware delante de Uvicorn;
+esta ruta no comprueba credenciales.
 
 Desde la raíz del repositorio, prepara el entorno e instala las dependencias:
-cd Proyecto
-python3.11 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 
