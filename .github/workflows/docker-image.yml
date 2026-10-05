@@ -7,12 +7,42 @@ on:
     branches: [ "main" ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag my-image-name:${{ github.sha }}
+      - uses: actions/checkout@v4
+
+      - name: Build the Docker image
+        run: |
+          docker build . \
+            --file Dockerfile \
+            --tag laboratorio-aoe-agenticdev:latest \
+            --tag laboratorio-aoe-agenticdev:local \
+            --tag laboratorio-aoe-agenticdev:${{ github.sha }}
+
+      - name: Run container
+        id: run-container
+        run: |
+          docker run -d \
+            --name laboratorio-aoe-agenticdev \
+            -p 8000:8000 \
+            laboratorio-aoe-agenticdev:${{ github.sha }}
+
+      - name: Smoke test
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+
+      - name: Show container logs
+        if: failure() && steps.run-container.outcome == 'success'
+        run: docker logs laboratorio-aoe-agenticdev
+
+      - name: Stop container
+        if: always() && steps.run-container.outcome == 'success'
+        run: docker rm --force laboratorio-aoe-agenticdev
