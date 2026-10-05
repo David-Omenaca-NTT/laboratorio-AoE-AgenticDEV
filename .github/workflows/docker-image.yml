@@ -1,21 +1,73 @@
-name: Docker Image CI
+name: Application Artifact and Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest -q tests/
+
+  build-app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create application artifact
+        run: |
+          mkdir -p build
+          tar \
+            --exclude='__pycache__' \
+            --exclude='.pytest_cache' \
+            --exclude='*.py[cod]' \
+            -czf build/app-build.tar.gz \
+            src \
+            requirements.txt
+
+      - name: Upload application artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: build/app-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  build-image:
+    needs: [tests, build-app]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download application artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-build
+          path: build
+
+      - name: Prepare image build context
+        run: |
+          mkdir -p image-context
+          tar -xzf build/app-build.tar.gz -C image-context
+
       - name: Build the Docker image
         run: |
-          docker build . \
+          docker build image-context \
             --file Dockerfile \
             --tag laboratorio-aoe-agenticdev:latest \
             --tag laboratorio-aoe-agenticdev:local \
